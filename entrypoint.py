@@ -106,7 +106,7 @@ def main():
     
     if launch_empire:
         print("\nLaunching Empire (waiting 5s)...")
-        command = 'cd /opt/Empire && python empire --rest --username %s --password %s' % (empire_user, empire_pass)
+        command = 'cd /opt/Empire && ./empire --rest --username %s --password %s' % (empire_user, empire_pass)
         tmux_pane.send_keys(command)
         time.sleep(5)
         
