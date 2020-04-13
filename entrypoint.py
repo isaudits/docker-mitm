@@ -151,7 +151,7 @@ def main():
             print(line)
         fileinput.close()
         
-        if os.path.exists("/tmp/hosts-signing-disabled"):
+        if os.path.exists("/tmp/hosts-signing-false"):
             command = "ntlmrelayx.py -smb2support -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
         else:
             command = "ntlmrelayx.py -smb2support -c '%s'" % (relayx_command)

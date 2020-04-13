@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV EMPIRE_USER='empireadmin'
 ENV EMPIRE_PASS='Password123!'
 
-ENV DEPS_GENERAL='git curl wget sudo locales lsb-release apt-transport-https nmap tmux'
+ENV DEPS_GENERAL='git curl wget sudo locales lsb-release apt-transport-https tmux'
 ENV DEPS_DEATHSTAR='python3-dev python3-pip'
 ENV DEPS_RESPONDER='python-dev'
 ENV DEPS_REMOVE='build-essential make g++'
