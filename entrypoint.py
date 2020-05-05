@@ -105,10 +105,10 @@ def main():
         subprocess.Popen("/opt/check-smb-signing.sh --finger --finger-path /opt/Responder/tools/RunFinger.py --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
     
     if launch_empire:
-        print("\nLaunching Empire (waiting 5s)...")
+        print("\nLaunching Empire (waiting 10s)...")
         command = 'cd /opt/Empire && ./empire --rest --username %s --password %s' % (empire_user, empire_pass)
         tmux_pane.send_keys(command)
-        time.sleep(5)
+        time.sleep(10)
         
         if launch_deathstar:
             print("\nLaunching DeathStar (waiting 10s)...")
