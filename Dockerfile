@@ -1,4 +1,5 @@
-FROM debian:stable
+#FROM debian:stable
+FROM isaudits/msf:minimal
 
 WORKDIR /root/
 
