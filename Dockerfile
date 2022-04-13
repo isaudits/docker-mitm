@@ -30,6 +30,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
 RUN git clone --depth=1 https://github.com/byt3bl33d3r/DeathStar /opt/DeathStar && \
     cd /opt/DeathStar && \
     rm -rf .git && \
+    # Downgrade PIP to allow hashed requirements to install properly
+    pip3 install --upgrade pip==20.2.4 && \
     pip3 install -r ./requirements.txt
 
 # Currently Python2 only
