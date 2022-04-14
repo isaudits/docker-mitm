@@ -184,7 +184,7 @@ def main():
         tmux_pane = tmux_pane.split_window()
         tmux_pane.send_keys(command)
     
-    command = "cd /opt/Responder && python ./Responder.py -I eth0 -r -d -w -e " + host_ip
+    command = "cd /opt/Responder && python3 Responder.py -I eth0 -d -w -e " + host_ip
     #tmux_window.split_window(shell=command)
     tmux_pane = tmux_pane.split_window()
     tmux_pane.send_keys(command)
