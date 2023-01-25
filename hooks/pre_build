@@ -1,0 +1,10 @@
+#!/bin/bash
+set -ueo pipefail
+
+docker buildx create \
+                --name builder \
+                --driver docker-container \
+                --platform linux/amd64,linux/arm64 \
+                --use
+
+docker buildx inspect --bootstrap
