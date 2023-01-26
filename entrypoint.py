@@ -116,7 +116,7 @@ def main():
     
     if launch_relayx:
         print("Getting relay target list")
-        subprocess.Popen("/opt/check-smb-signing.sh --finger --finger-path /opt/Responder/tools/RunFinger.py --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
+        subprocess.Popen("/opt/check-smb-signing.sh --finger --finger-path /usr/share/responder/tools/RunFinger.py --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
     
     if launch_empire:
         print("\nLaunching Empire (waiting 10s)...")
