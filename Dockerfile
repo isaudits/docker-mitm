@@ -9,18 +9,12 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV EMPIRE_USER='empireadmin'
 ENV EMPIRE_PASS='Password123!'
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-        nmap tmux python3-libtmux python3-impacket python3-pip responder && \
+RUN touch ~/.hushlogin && \
+    apt-get update && apt-get upgrade -y && apt-get install -y \
+        nmap tmux python3-libtmux impacket-scripts python3-impacket responder metasploit-framework && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* 
-
-RUN git clone --depth=1 https://github.com/byt3bl33d3r/DeathStar /opt/DeathStar && \
-    cd /opt/DeathStar && \
-    rm -rf .git && \
-    # Downgrade PIP to allow hashed requirements to install properly
-    pip3 install --upgrade pip==20.2.4 && \
-    pip3 install -r ./requirements.txt
 
 COPY entrypoint.py check-smb-signing.sh /opt/
 COPY tmux.conf /root/.tmux.conf

