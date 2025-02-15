@@ -1,4 +1,0 @@
-#!/bin/bash
-set -ueo pipefail
-
-#Dummy push file to override docker hub push hook - buildx is handling image push
