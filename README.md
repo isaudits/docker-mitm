@@ -3,14 +3,13 @@
 Docker implementation for man in the middle attacks:
 * https://github.com/lgandx/Responder
 * https://github.com/SecureAuthCorp/impacket/blob/master/examples/ntlmrelayx.py
-* https://github.com/EmpireProject/Empire
 
 
 ## Description
 Executes MiTM attacks using responder with options to:
 * Capture credentials
 * Relay and execute a custom command using ntlmrelayx, such as a powershell launcher for a remote shell
-* Spawn an Empire server or meterpreter server and relay the agent command to targets via ntlmrelayx
+* Spawn a meterpreter server and relay the agent command to targets via ntlmrelayx
 
 Based upon attack scenarios described by [byt3bl33d3r](https://github.com/byt3bl33d3r):
 * https://byt3bl33d3r.github.io/automating-the-empire-with-the-death-star-getting-domain-admin-with-a-push-of-a-button.html
@@ -46,25 +45,23 @@ Run
     
 Options
 
-    usage: entrypoint.py [-h] [-d] [-v] [--port PORT]
-                         (--capture | --empire | --deathstar | --command ACTION)
-                         [host_ip] [target_ip]
-    
-    Responder / NTLMRelayX automation script with optional Empire / DeathStar
-    listeners
-    
+    usage: ./mitm.sh [-h] [-d] [-v] [--port PORT] (--capture | --shell | --msf | --command ACTION) [host_ip] [target_ip]
+
+    Responder / NTLMRelayX automation script
+
     positional arguments:
-      host_ip               Host IP
-      target_ip             Target IP / Range / Subnet (nmap format)
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      -d, --debug           Print lots of debugging statements
-      -v, --verbose         Be verbose
-      --port PORT, -p PORT  Port for Empire listener (443)
-      --capture             Capture credentials only - no relay
-      --empire              Start Empire listener as relay target
-      --command ACTION      Command to relay to targets
+    host_ip           Host IP
+    target_ip         Target IP / Range / Subnet (nmap format)
+
+    options:
+    -h, --help        show this help message and exit
+    -d, --debug       Print lots of debugging statements
+    -v, --verbose     Be verbose
+    --port, -p PORT   Port for MSF web handler (443)
+    --capture         Capture credentials only - no relay
+    --shell           Start Villain reverse shell listener as relay target
+    --msf             Start Metasploit listener as relay target
+    --command ACTION  Command to relay to targets
 
 --------------------------------------------------------------------------------
 
