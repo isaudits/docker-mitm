@@ -13,7 +13,7 @@ RUN touch ~/.hushlogin && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* 
 
-COPY entrypoint.py check-smb-signing.sh /opt/
+COPY mitm.py check-smb-signing.sh /opt/
 COPY tmux.conf /root/.tmux.conf
-ENTRYPOINT ["python3", "/opt/entrypoint.py"]
+ENTRYPOINT ["python3", "/opt/mitm.py"]
 

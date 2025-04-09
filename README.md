@@ -28,6 +28,14 @@ that Responder can leverage. Given the option, you will likely have better resul
 running inside of a Linux VM with bridged networking on top of OSX as opposed to
 inside of a native OSX docker instance.
 
+mitm.py can also be run directly on Kali linux without using Docker if the proper prerequisites are installed:
+    apt install tmux 
+    apt install python3-libtmux
+    apt install responder
+    apt install python3-impacket impacket-scripts
+    apt install metasploit-framework
+    apt install villain
+
 ## Usage
 
 Pull:
@@ -40,12 +48,12 @@ or Build:
 
 Run
 
-    ./mitm.sh
+    ./mitm-docker.sh
     
     
 Options
 
-    usage: ./mitm.sh [-h] [-d] [-v] [--port PORT] (--capture | --shell | --msf | --command ACTION) [host_ip] [target_ip]
+    usage: ./mitm-docker.sh [-h] [-d] [-v] [--port PORT] (--capture | --shell | --msf | --command ACTION) [host_ip] [target_ip]
 
     Responder / NTLMRelayX automation script
 

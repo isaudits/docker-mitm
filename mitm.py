@@ -5,7 +5,53 @@ import logging
 import os
 import subprocess
 import fileinput
-import libtmux
+
+try:
+    import libtmux
+except ImportError:
+    print("libtmux not installed. Please install it with 'apt install python3-libtmux'")
+    exit(1)
+    
+def check_prerequisites():
+    check = True
+    
+    # Check if the operating system is Kali Linux
+    if not os.path.exists("/etc/os-release"):
+        print("This script is designed to run on Kali Linux.")
+        exit(1)
+    with open("/etc/os-release") as f:
+        if "Kali" not in f.read():
+            print("This script is designed to run on Kali Linux.")
+            exit(1)
+    
+    # Check if tmux is installed
+    try:
+        subprocess.run(['tmux', '-V'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError:
+        print("tmux not installed. Please install it with 'apt install tmux'")
+        check = False
+    
+    # Check if Responder is installed
+    if not os.path.exists("/usr/share/responder/Responder.conf"):
+        print("Responder not installed. Please install it with 'apt install responder'")
+        check = False
+    
+    # Check if ntlmrelayx is installed
+    if not os.path.exists("/usr/bin/impacket-ntlmrelayx"):
+        print("ntlmrelayx not installed. Please install it with 'apt install python3-impacket impacket-scripts'")
+        check = False
+        
+    # Check if Metasploit is installed
+    if not os.path.exists("/usr/bin/msfconsole"):
+        print("Metasploit not installed. Please install it with 'apt install metasploit-framework'")
+        check = False
+        
+    # Check if villain is installed
+    if not os.path.exists("/usr/bin/villain"):
+        print("villain not installed. Please install it with 'apt install villain'")
+        check = False
+        
+    return check
 
 def main():
     
@@ -58,6 +104,10 @@ def main():
     msf_srvport = args.port
     msf_lport = '8443'
     action=args.action
+    
+    if check_prerequisites() == False:
+        print("Please install the required packages and try again.")
+        exit(1)
     
     if action=='capture':
         launch_relayx=False
