@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN touch ~/.hushlogin && \
     apt-get update && apt-get upgrade -y && apt-get install -y \
-        nmap tmux python3-libtmux impacket-scripts python3-impacket responder && \
+        nmap tmux python3-libtmux impacket-scripts python3-impacket responder villain && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* 
