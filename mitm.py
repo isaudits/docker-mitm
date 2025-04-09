@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import fileinput
+import shutil
 
 try:
     import libtmux
@@ -136,8 +137,10 @@ def main():
     if not target_ip and not action=='capture':
         target_ip = input("\nEnter relay target IP / Range / Subnet (nmap format): ")
     
-    # Run base image docker entrypoint so environment variables are parsed into config files like normal
-    subprocess.Popen("/opt/entrypoint.sh", shell=True).wait()
+    # Copy tmux.conf to home directory if it doesn't exist
+    tmux_conf_path = os.path.expanduser("~/.tmux.conf")
+    if not os.path.exists(tmux_conf_path):
+        shutil.copyfile("tmux.conf", tmux_conf_path)
     
     # Set up tmux window
     tmux_server = libtmux.Server()
@@ -167,10 +170,10 @@ def main():
         
     if launch_relayx:
         for line in fileinput.input("/usr/share/responder/Responder.conf", inplace=True):
-            line=line.replace("SMB = On","SMB = Off")
-            line=line.replace("HTTP = On","HTTP = Off")
-            line=line.replace("HTTPS = On","HTTPS = Off")
-            print(line)
+            line=line.replace("SMB      = On","SMB      = Off")
+            line=line.replace("HTTP     = On","HTTP     = Off")
+            line=line.replace("HTTPS    = On","HTTPS    = Off")
+            print(line, end='')
         fileinput.close()
         
         if os.path.exists("/tmp/hosts-signing-false"):
